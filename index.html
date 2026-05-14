@@ -1,143 +1,928 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wordish Unlimited</title>
-  <meta name="description" content="Unlimited Wordle-style game with difficulty modes.">
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testimonial Builder</title>
+  <style>
+    :root {
+      --sidebar-bg: #16213e;
+      --sidebar-border: rgba(255,255,255,0.08);
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --bg: #f1f5f9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--sidebar-bg);
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .header-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+    .header h1 {
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .header-sub {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.8rem;
+      margin-left: auto;
+    }
+
+    /* ── Layout ── */
+    .app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 52px);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 280px;
+      min-width: 280px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+      border-right: 1px solid var(--sidebar-border);
+    }
+
+    .sidebar-section {
+      padding: 1.25rem 1.25rem 0;
+    }
+    .sidebar-section:last-child {
+      padding-bottom: 1.25rem;
+    }
+
+    .sidebar-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 0.6rem;
+    }
+
+    /* API key */
+    .api-input {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 7px;
+      padding: 0.55rem 0.75rem;
+      color: #fff;
+      font-size: 0.8rem;
+      font-family: 'Courier New', monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .api-input:focus { border-color: var(--accent); }
+    .api-input::placeholder { color: rgba(255,255,255,0.25); }
+    .api-hint {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.25);
+      margin-top: 0.4rem;
+      line-height: 1.4;
+    }
+
+    /* Divider */
+    .sidebar-divider {
+      height: 1px;
+      background: var(--sidebar-border);
+      margin: 1.25rem 1.25rem 0;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 1.5px dashed rgba(255,255,255,0.2);
+      border-radius: 9px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(99,102,241,0.1);
+    }
+    .upload-zone input { display: none; }
+    .upload-zone-icon { font-size: 1.4rem; margin-bottom: 0.4rem; }
+    .upload-zone p {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.5;
+    }
+    .upload-zone strong { color: rgba(255,255,255,0.75); }
+
+    /* File list */
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0;
+    }
+    .file-empty {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.25);
+      text-align: center;
+      padding: 0.25rem;
+    }
+    .file-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      position: relative;
+    }
+    .file-card-name {
+      color: rgba(255,255,255,0.85);
+      font-size: 0.78rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 1.25rem;
+    }
+    .file-card-meta {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 0.2rem;
+    }
+    .file-remove {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.25);
+      cursor: pointer;
+      font-size: 0.8rem;
+      line-height: 1;
+      padding: 2px;
+      transition: color 0.15s;
+    }
+    .file-remove:hover { color: var(--danger); }
+
+    /* Format guide */
+    .format-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 7px;
+      padding: 0.75rem;
+    }
+    .format-box p {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+    .format-box code {
+      display: block;
+      font-family: 'Courier New', monospace;
+      font-size: 0.68rem;
+      color: #a5b4fc;
+      line-height: 1.7;
+      white-space: pre;
+    }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Topic card */
+    .topic-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .topic-card h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+    .topic-card > p {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 0.9rem;
+    }
+    .topic-row {
+      display: flex;
+      gap: 0.6rem;
+    }
+    .topic-input {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      border: 1.5px solid var(--card-border);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      color: var(--text);
+    }
+    .topic-input:focus { border-color: var(--accent); }
+    .topic-input::placeholder { color: #94a3b8; }
+
+    .generate-btn {
+      padding: 0.65rem 1.25rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .generate-btn:hover { background: var(--accent-hover); }
+    .generate-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+    .chip {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 0.28rem 0.7rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .chip:hover {
+      background: #eef2ff;
+      border-color: #a5b4fc;
+      color: var(--accent);
+    }
+
+    /* Status */
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      border: 1px solid;
+    }
+    .status.loading { background: #fffbeb; border-color: #fde68a; color: #78350f; }
+    .status.error   { background: #fef2f2; border-color: #fecaca; color: #7f1d1d; }
+    .status.info    { background: #eff6ff; border-color: #bfdbfe; color: #1e3a5f; }
+
+    .spinner {
+      width: 15px; height: 15px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Clips ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+    .section-header h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .badge {
+      background: var(--accent);
+      color: white;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.12rem 0.45rem;
+      border-radius: 10px;
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .copy-btn:hover { background: #f8fafc; color: var(--text); }
+
+    .clips-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .clip-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.9rem 1.1rem;
+      display: grid;
+      grid-template-columns: 28px 1fr 40px;
+      gap: 0.75rem;
+      align-items: start;
+    }
+    .clip-num {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .clip-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
+    }
+    .clip-speaker {
+      font-weight: 700;
+      font-size: 0.84rem;
+    }
+    .clip-tc {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      background: #f1f5f9;
+      color: var(--muted);
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+    }
+    .clip-filename {
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+    .clip-text {
+      font-size: 0.87rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+    .clip-reason {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 0.35rem;
+    }
+    .clip-score {
+      text-align: center;
+    }
+    .clip-score-num {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .clip-score-label {
+      font-size: 0.6rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Narrative ── */
+    .narrative-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .narrative-body {
+      font-size: 0.88rem;
+      line-height: 1.85;
+      color: var(--text);
+      white-space: pre-wrap;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    /* Welcome */
+    .welcome {
+      text-align: center;
+      padding: 3.5rem 1rem;
+      color: var(--muted);
+    }
+    .welcome-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .welcome h2 { font-size: 1.15rem; color: var(--text); margin-bottom: 0.5rem; }
+    .welcome p { font-size: 0.85rem; line-height: 1.65; max-width: 380px; margin: 0 auto; }
+
+    /* Responsive */
+    @media (max-width: 680px) {
+      .app { flex-direction: column; height: auto; }
+      .sidebar { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--sidebar-border); }
+      .topic-row { flex-direction: column; }
+      .main { padding: 1rem; }
+    }
+  </style>
 </head>
 <body>
-  <header class="app-header">
-    <div class="title-wrap">
-      <h1>Wordish <span class="accent">Unlimited</span></h1>
-      <div id="greeting" class="greeting" aria-live="polite"></div>
-    </div>
-    <div class="controls">
-      <button id="newGameBtn" type="button">New game</button>
-      <button id="settingsBtn" type="button" aria-haspopup="dialog">Settings</button>
-      <button id="statsBtn" type="button" aria-haspopup="dialog">Stats</button>
-      <button id="helpBtn" type="button" aria-haspopup="dialog">?</button>
-      <label class="switch" title="Toggle dark mode">
-        <input type="checkbox" id="darkToggle">
-        <span class="slider"></span>
-      </label>
-    </div>
-  </header>
 
-  <main>
-    <section id="board" class="board" role="grid" aria-label="Game board"></section>
+<div class="header">
+  <span class="header-icon">🎬</span>
+  <h1>Testimonial Builder</h1>
+  <span class="header-sub">Find the best quotes across your interviews</span>
+</div>
 
-    <section class="keyboard" aria-label="On-screen keyboard">
-      <div class="kb-row" data-row="0"></div>
-      <div class="kb-row" data-row="1"></div>
-      <div class="kb-row" data-row="2"></div>
-    </section>
+<div class="app">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-section" style="padding-top:1.25rem">
+      <div class="sidebar-label">Claude API Key</div>
+      <input type="password" class="api-input" id="apiKey" placeholder="sk-ant-api03-…" autocomplete="off">
+      <p class="api-hint">Key used only in your browser. Never stored or sent anywhere else.</p>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Upload Transcripts</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept=".txt,.docx" multiple>
+        <div class="upload-zone-icon">📄</div>
+        <p><strong>Drop files here</strong><br>or click to browse<br><small>.txt or .docx · multiple OK</small></p>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="padding-top:0.75rem">
+      <div class="file-list" id="fileList">
+        <p class="file-empty">No transcripts loaded</p>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section" style="padding-bottom:1.5rem">
+      <div class="sidebar-label">Expected Format (Premiere export)</div>
+      <div class="format-box">
+        <p>Each block: timecode line → speaker name → text paragraph, separated by a blank line.</p>
+        <code>01:08:28:01 - 01:08:53:09
+Ben
+I think the key benefit is it's
+a much easier way of explaining
+our value proposition.
+
+01:09:14:20 - 01:09:40:17
+Jane
+It was a really positive
+experience working with them.</code>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main" id="main">
+
+    <div class="topic-card">
+      <h2>Film topic</h2>
+      <p>Describe what this testimonial film should be about. The AI will find the most relevant clips.</p>
+      <div class="topic-row">
+        <input type="text" class="topic-input" id="topicInput"
+               placeholder="e.g. Why the training provider is great to work with">
+        <button class="generate-btn" id="generateBtn" onclick="generate()">Find Clips →</button>
+      </div>
+      <div class="examples">
+        <button class="chip" onclick="setTopic(this)">Why the training provider is great to work with</button>
+        <button class="chip" onclick="setTopic(this)">How much I learned during the course</button>
+        <button class="chip" onclick="setTopic(this)">The impact this company had on our business</button>
+        <button class="chip" onclick="setTopic(this)">What makes this product stand out</button>
+      </div>
+    </div>
+
+    <div id="statusBar" style="display:none"></div>
+
+    <div id="results"></div>
+
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">🎥</div>
+      <h2>Ready when you are</h2>
+      <p>Enter your Claude API key, upload your Premiere transcripts from the sidebar, type a topic, and hit <strong>Find Clips</strong>.</p>
+    </div>
+
   </main>
+</div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<!-- JSZip for .docx parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+        integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHveXg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+'use strict';
 
-  <!-- Settings modal -->
-  <dialog id="settingsDialog">
-    <form method="dialog" class="modal">
-      <h2>Settings</h2>
+// ─── State ───────────────────────────────────────────────────────────────────
 
-      <fieldset class="block">
-        <legend>Difficulty</legend>
-        <label class="item">
-          Mode:
-          <select id="difficulty">
-            <option value="easy">Easy (200) — “Denise Mode”</option>
-            <option value="classic">Classic (2,300)</option>
-            <option value="extended">Extended (5,000)</option>
-          </select>
-        </label>
-        <label class="item">
-          Word list source:
-          <select id="wordSource">
-            <option value="file-classic">Use difficulty setting</option>
-            <option value="built-in">Built-in backup list</option>
-            <option value="words.txt">Custom words.txt</option>
-            <option value="file-easy">words_easy_200.txt</option>
-            <option value="file-classic">words_wordle_answers.txt</option>
-            <option value="file-extended">words_common.txt</option>
-          </select>
-        </label>
-      </fieldset>
+const state = {
+  files: []          // [{ name, segments: [{timecodeIn, timecodeOut, speaker, text, filename}] }]
+};
 
-      <fieldset class="block">
-        <legend>Gameplay</legend>
-        <label class="item">
-          Guesses per game:
-          <input type="number" id="guessLimit" min="3" max="10" value="6" />
-        </label>
-        <label class="item">
-          <input type="checkbox" id="hardMode" />
-          Hard mode (must use revealed hints)
-        </label>
-        <label class="item">
-          <input type="checkbox" id="allowAnyGuess" />
-          Allow any five-letter guess (skip dictionary check)
-        </label>
-      </fieldset>
+// ─── Parsing ─────────────────────────────────────────────────────────────────
 
-      <fieldset class="block">
-        <legend>Personalisation</legend>
-        <label class="item">
-          <input type="checkbox" id="greetEnabled" />
-          Show Denise greeting
-        </label>
-        <label class="item">
-          Greeting text:
-          <input type="text" id="greetText" placeholder="Hi Denise! Ready for a puzzle?" maxlength="80" />
-        </label>
-      </fieldset>
+// Adobe Premiere plain-text export format:
+//   HH:MM:SS:FF - HH:MM:SS:FF   (timecode line)
+//   SpeakerName                   (speaker line)
+//   The text content…             (text, may span several lines)
+//   <blank line>
+//   HH:MM:SS:FF - HH:MM:SS:FF   (next block)
+//   …
 
-      <menu>
-        <button id="closeSettings" value="cancel">Close</button>
-        <button id="saveSettings" value="default">Save</button>
-      </menu>
-    </form>
-  </dialog>
+const TC_RE = /^\d{2}:\d{2}:\d{2}[:;]\d{2}\s*[-–]\s*\d{2}:\d{2}:\d{2}[:;]\d{2}$/;
 
-  <!-- Stats modal -->
-  <dialog id="statsDialog">
-    <form method="dialog" class="modal">
-      <h2>Stats</h2>
-      <div class="stats">
-        <div><span id="sGames">0</span><small>Played</small></div>
-        <div><span id="sWins">0</span><small>Wins</small></div>
-        <div><span id="sStreak">0</span><small>Streak</small></div>
-        <div><span id="sBest">0</span><small>Best streak</small></div>
+function parseSegments(paragraphs, filename) {
+  // paragraphs is an array of trimmed non-empty strings extracted from the file
+  const segments = [];
+  let i = 0;
+
+  while (i < paragraphs.length) {
+    // Find timecode line
+    if (!TC_RE.test(paragraphs[i])) { i++; continue; }
+
+    const tcLine  = paragraphs[i];
+    const tcMatch = tcLine.match(/^(\d{2}:\d{2}:\d{2}[:;]\d{2})\s*[-–]\s*(\d{2}:\d{2}:\d{2}[:;]\d{2})$/);
+    const timecodeIn  = tcMatch[1];
+    const timecodeOut = tcMatch[2];
+    i++;
+
+    if (i >= paragraphs.length) break;
+
+    // Speaker name is the very next paragraph
+    const speaker = paragraphs[i];
+    i++;
+
+    // Collect text lines until we hit the next timecode or end
+    const textParts = [];
+    while (i < paragraphs.length && !TC_RE.test(paragraphs[i])) {
+      textParts.push(paragraphs[i]);
+      i++;
+    }
+
+    const text = textParts.join(' ').trim();
+    if (text) {
+      segments.push({ timecodeIn, timecodeOut, speaker, text, filename });
+    }
+  }
+
+  return segments;
+}
+
+function parseTextFile(rawText, filename) {
+  const lines = rawText
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .map(l => l.trim());
+
+  // Group into paragraphs (separated by blank lines)
+  const paragraphs = [];
+  let buf = [];
+  for (const line of lines) {
+    if (line === '') {
+      if (buf.length) { paragraphs.push(buf.join(' ')); buf = []; }
+    } else {
+      buf.push(line);
+    }
+  }
+  if (buf.length) paragraphs.push(buf.join(' '));
+
+  return parseSegments(paragraphs, filename);
+}
+
+async function parseDocxFile(buffer, filename) {
+  const zip = await JSZip.loadAsync(buffer);
+  const xml = await zip.file('word/document.xml').async('string');
+
+  // Extract one string per <w:p> paragraph
+  const paragraphs = [];
+  const paraRe = /<w:p[ >][\s\S]*?<\/w:p>/g;
+  let m;
+  while ((m = paraRe.exec(xml)) !== null) {
+    // Collect all <w:t> text runs within the paragraph
+    const textRe = /<w:t[^>]*>([^<]*)<\/w:t>/g;
+    let t, text = '';
+    while ((t = textRe.exec(m[0])) !== null) text += t[1];
+    const trimmed = text.trim();
+    if (trimmed) paragraphs.push(trimmed);
+  }
+
+  return parseSegments(paragraphs, filename);
+}
+
+// ─── File handling ────────────────────────────────────────────────────────────
+
+async function handleFiles(fileList) {
+  for (const file of fileList) {
+    try {
+      let segments;
+      if (file.name.toLowerCase().endsWith('.docx')) {
+        segments = await parseDocxFile(await file.arrayBuffer(), file.name);
+      } else {
+        segments = parseTextFile(await file.text(), file.name);
+      }
+
+      if (segments.length === 0) {
+        showStatus(`No segments found in "${file.name}". Check the format matches the guide.`, 'error');
+        continue;
+      }
+
+      // Replace if re-uploading same filename
+      state.files = state.files.filter(f => f.name !== file.name);
+      state.files.push({ name: file.name, segments });
+
+    } catch (err) {
+      showStatus(`Could not parse "${file.name}": ${err.message}`, 'error');
+    }
+  }
+
+  renderFileList();
+  updateWelcome();
+}
+
+function removeFile(name) {
+  state.files = state.files.filter(f => f.name !== name);
+  renderFileList();
+  updateWelcome();
+}
+
+function renderFileList() {
+  const el = document.getElementById('fileList');
+  if (state.files.length === 0) {
+    el.innerHTML = '<p class="file-empty">No transcripts loaded</p>';
+    return;
+  }
+  el.innerHTML = state.files.map(f => {
+    const speakers = [...new Set(f.segments.map(s => s.speaker))].join(', ');
+    return `
+      <div class="file-card">
+        <div class="file-card-name">${esc(f.name)}</div>
+        <div class="file-card-meta">${f.segments.length} clips · ${esc(speakers)}</div>
+        <button class="file-remove" title="Remove" onclick="removeFile('${esc(f.name).replace(/'/g, "\\'")}')">✕</button>
+      </div>`;
+  }).join('');
+}
+
+// ─── Upload zone wiring ───────────────────────────────────────────────────────
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput  = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => { handleFiles(e.target.files); fileInput.value = ''; });
+
+uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+});
+
+// ─── Topic chips ──────────────────────────────────────────────────────────────
+
+function setTopic(el) {
+  document.getElementById('topicInput').value = el.textContent.trim();
+  document.getElementById('topicInput').focus();
+}
+
+// ─── Generate ─────────────────────────────────────────────────────────────────
+
+async function generate() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const topic  = document.getElementById('topicInput').value.trim();
+  const btn    = document.getElementById('generateBtn');
+
+  if (!apiKey) { showStatus('Enter your Claude API key in the sidebar first.', 'error'); return; }
+  if (!state.files.length) { showStatus('Upload at least one transcript file.', 'error'); return; }
+  if (!topic) { showStatus('Enter a topic or film brief above.', 'error'); return; }
+
+  btn.disabled = true;
+  document.getElementById('welcome').style.display = 'none';
+
+  const allSegments = state.files.flatMap(f => f.segments);
+  showStatus(`Analysing ${allSegments.length} clips across ${state.files.length} file(s)…`, 'loading');
+
+  try {
+    const result = await callClaude(apiKey, topic, allSegments);
+    renderResults(result);
+    hideStatus();
+  } catch (err) {
+    showStatus(`Error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ─── Claude API ───────────────────────────────────────────────────────────────
+
+async function callClaude(apiKey, topic, segments) {
+  const segList = segments.map((s, i) =>
+    `[${i + 1}] File: ${s.filename} | Speaker: ${s.speaker} | In: ${s.timecodeIn} | Out: ${s.timecodeOut}\n"${s.text}"`
+  ).join('\n\n');
+
+  const prompt = `You are helping a documentary filmmaker assemble a testimonial film.
+
+FILM TOPIC: "${topic}"
+
+TRANSCRIPT SEGMENTS (each numbered, with file, speaker, timecodes, and quote):
+${segList}
+
+INSTRUCTIONS:
+1. Identify every segment genuinely relevant to the topic.
+2. Score each 1–10 for relevance (10 = perfect fit, 1 = barely relevant). Omit segments scoring below 5.
+3. Write a coherent narrative script by arranging the best segments (score 6+) in logical order. Use the speakers' exact words. Connect them with brief editorial notes in [square brackets] where needed to aid flow. Include [SPEAKER NAME, timecode-in] attribution before each quote.
+
+Return ONLY valid JSON — no markdown fences, no commentary outside the JSON:
+{
+  "clips": [
+    {
+      "filename": "exact filename string",
+      "speaker": "speaker name",
+      "timecodeIn": "HH:MM:SS:FF",
+      "timecodeOut": "HH:MM:SS:FF",
+      "text": "exact quote",
+      "relevanceScore": 8,
+      "reason": "one sentence explaining relevance"
+    }
+  ],
+  "narrative": "Full narrative script here."
+}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-7',
+      max_tokens: 8192,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `API responded with ${res.status}`);
+  }
+
+  const data = await res.json();
+  let raw = data.content[0].text.trim();
+  // Strip accidental markdown fences
+  raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+
+  return JSON.parse(raw);
+}
+
+// ─── Render results ───────────────────────────────────────────────────────────
+
+let lastClips = [];
+let lastNarrative = '';
+
+function renderResults(result) {
+  const clips = (result.clips || []).sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
+  const narrative = result.narrative || '';
+
+  lastClips     = clips;
+  lastNarrative = narrative;
+
+  const clipsHtml = clips.map((c, i) => `
+    <div class="clip-card">
+      <div class="clip-num">${i + 1}</div>
+      <div>
+        <div class="clip-meta">
+          <span class="clip-speaker">${esc(c.speaker)}</span>
+          <span class="clip-tc">${esc(c.timecodeIn)} → ${esc(c.timecodeOut)}</span>
+          <span class="clip-filename">${esc(c.filename)}</span>
+        </div>
+        <div class="clip-text">"${esc(c.text)}"</div>
+        ${c.reason ? `<div class="clip-reason">${esc(c.reason)}</div>` : ''}
       </div>
-      <div id="answerReveal" class="answer-reveal" aria-live="polite"></div>
-      <div class="share">
-        <button id="shareBtn" type="button">Share result</button>
+      <div class="clip-score">
+        <div class="clip-score-num">${c.relevanceScore ?? '—'}</div>
+        <div class="clip-score-label">/10</div>
       </div>
-      <menu>
-        <button value="cancel">Close</button>
-      </menu>
-    </form>
-  </dialog>
+    </div>`).join('');
 
-  <!-- Help modal -->
-  <dialog id="helpDialog">
-    <form method="dialog" class="modal">
-      <h2>How to play</h2>
-      <p>Guess the hidden five-letter word in a limited number of tries. After each guess:</p>
-      <ul>
-        <li><span class="legend legend-correct">Green</span> = correct letter in the correct place.</li>
-        <li><span class="legend legend-present">Yellow</span> = letter is in the word, wrong place.</li>
-        <li><span class="legend legend-absent">Grey</span> = letter is not in the word.</li>
-      </ul>
-      <p>Play as many times as you like — click <em>New game</em> for a fresh word.</p>
-      <menu>
-        <button value="cancel">Close</button>
-      </menu>
-    </form>
-  </dialog>
+  document.getElementById('results').innerHTML = `
+    <div>
+      <div class="section-header">
+        <h2>Relevant Clips <span class="badge">${clips.length}</span></h2>
+        <button class="copy-btn" onclick="copyClips()">Copy clip list</button>
+      </div>
+      <div class="clips-grid">${clipsHtml}</div>
+    </div>
 
-  <script src="script.js"></script>
+    <div class="narrative-card">
+      <div class="section-header">
+        <h2>Narrative Script</h2>
+        <button class="copy-btn" onclick="copyNarrative()">Copy script</button>
+      </div>
+      <div class="narrative-body" id="narrativeBody">${esc(narrative)}</div>
+    </div>`;
+}
+
+function copyClips() {
+  const text = lastClips.map((c, i) =>
+    `${i + 1}. ${c.speaker}  |  ${c.timecodeIn} → ${c.timecodeOut}  |  ${c.filename}  |  Score: ${c.relevanceScore}/10\n   "${c.text}"`
+  ).join('\n\n');
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+function copyNarrative() {
+  navigator.clipboard.writeText(lastNarrative).catch(() => {});
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusBar');
+  el.style.display = 'flex';
+  el.className = `status ${type}`;
+  el.innerHTML = type === 'loading'
+    ? `<div class="spinner"></div> ${esc(msg)}`
+    : `${type === 'error' ? '⚠️' : 'ℹ️'} ${esc(msg)}`;
+}
+
+function hideStatus() {
+  const el = document.getElementById('statusBar');
+  el.style.display = 'none';
+}
+
+function updateWelcome() {
+  document.getElementById('welcome').style.display = state.files.length ? 'none' : 'block';
+}
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Allow pressing Enter in topic field
+document.getElementById('topicInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') generate();
+});
+</script>
 </body>
 </html>
